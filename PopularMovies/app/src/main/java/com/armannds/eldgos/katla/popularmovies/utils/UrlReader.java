@@ -37,7 +37,8 @@ public class UrlReader {
 
     public static String readFromUrl(URL urlToReadFrom) {
         if (urlToReadFrom == null) {
-            throw new IllegalArgumentException("URL can't be null when passed to UrlReader.readFromUrl");
+            Log.e(TAG, "URL can't be null when passed to UrlReader.readFromUrl");
+            return EMPTY_RESULT;
         }
         String jsonResults = null;
         HttpURLConnection urlConnection = openUrlConnection(urlToReadFrom);

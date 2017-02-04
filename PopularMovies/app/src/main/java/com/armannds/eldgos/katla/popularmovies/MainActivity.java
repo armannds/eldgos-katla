@@ -17,7 +17,11 @@ package com.armannds.eldgos.katla.popularmovies;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.widget.TextView;
 
 import com.armannds.eldgos.katla.popularmovies.data.Movie;
@@ -40,22 +44,63 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         mTestText = (TextView) findViewById(R.id.tv_test);
-        new FetchMoviesTask().execute(0);
+        loadMovies(R.string.popular);
+    }
+
+    private void loadMovies(int movieFilter) {
+        new FetchMoviesTask().execute(movieFilter);
+        setTitle(movieFilter);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.movie_filter, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.action_popular) {
+            loadMovies(R.string.popular);
+            return true;
+        }
+        if (id == R.id.action_top_rated) {
+            loadMovies(R.string.top_rated);
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     class FetchMoviesTask extends AsyncTask<Integer, Void, List<Movie>> {
 
-        private final String TAG = FetchMoviesTask.class.getSimpleName();
-
         @Override
         protected List<Movie> doInBackground(Integer... params) {
+            if (params.length == 0) {
+                return null;
+            }
+            int movieFilter = params[0];
+            return getMovies(movieFilter);
+        }
+
+        @Nullable
+        private List<Movie> getMovies(int movieFilter) {
             //TODO wrap these commands into a service and create non static methods using dependency injection to increase testability.
-            URL url = TheMovieDBNetworkUtils.buildPopularMoviesUrl();
+            URL url = getMovieUrl(movieFilter);
             String jsonResults = UrlReader.readFromUrl(url);
             if (JsonStringUtils.isNotEmpty(jsonResults)) {
                 return MovieConverterUtils.convertFromJson(jsonResults);
             } else {
                 return null;
+            }
+        }
+
+        private URL getMovieUrl(int movieFilter) {
+            if (movieFilter == R.string.top_rated) {
+                return TheMovieDBNetworkUtils.buildTopRatedMoviesUrl();
+            } else {
+                return TheMovieDBNetworkUtils.buildPopularMoviesUrl();
             }
         }
 
