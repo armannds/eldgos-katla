@@ -15,30 +15,20 @@
  */
 package com.armannds.eldgos.katla.popularmovies;
 
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.widget.TextView;
 
 import com.armannds.eldgos.katla.popularmovies.data.Movie;
+import com.armannds.eldgos.katla.popularmovies.utils.JsonStringUtils;
+import com.armannds.eldgos.katla.popularmovies.utils.MovieCollectionUtils;
 import com.armannds.eldgos.katla.popularmovies.utils.MovieConverterUtils;
 import com.armannds.eldgos.katla.popularmovies.utils.TheMovieDBNetworkUtils;
+import com.armannds.eldgos.katla.popularmovies.utils.UrlReader;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.Scanner;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -53,48 +43,25 @@ public class MainActivity extends AppCompatActivity {
         new FetchMoviesTask().execute(0);
     }
 
-    private class FetchMoviesTask extends AsyncTask<Integer, Void, List<Movie>> {
+    class FetchMoviesTask extends AsyncTask<Integer, Void, List<Movie>> {
+
+        private final String TAG = FetchMoviesTask.class.getSimpleName();
 
         @Override
         protected List<Movie> doInBackground(Integer... params) {
-
+            //TODO wrap these commands into a service and create non static methods using dependency injection to increase testability.
             URL url = TheMovieDBNetworkUtils.buildPopularMoviesUrl();
-
-            String simpleJsonStringResults = null;
-            if (url != null) {
-                HttpURLConnection urlConnection = null;
-                try {
-                    urlConnection = (HttpURLConnection) url.openConnection();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                try {
-                    InputStream in = urlConnection.getInputStream();
-                    Scanner scanner = new Scanner(in);
-                    scanner.useDelimiter("\\A");
-
-                    boolean hasInput = scanner.hasNext();
-                    if (hasInput) {
-                        simpleJsonStringResults = scanner.next();
-                    } else {
-                        simpleJsonStringResults = null;
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } finally {
-                    if (urlConnection != null) {
-                        urlConnection.disconnect();
-                    }
-                }
-                return MovieConverterUtils.convertFromJsonString(simpleJsonStringResults);
+            String jsonResults = UrlReader.readFromUrl(url);
+            if (JsonStringUtils.isNotEmpty(jsonResults)) {
+                return MovieConverterUtils.convertFromJson(jsonResults);
             } else {
-                return Collections.emptyList();
+                return null;
             }
         }
 
         @Override
         protected void onPostExecute(List<Movie> movies) {
-            if (movies != null && !movies.isEmpty()) {
+            if (MovieCollectionUtils.isNotEmpty(movies)) {
                 mTestText.setText(movies.get(0).getTitle());
             }
         }

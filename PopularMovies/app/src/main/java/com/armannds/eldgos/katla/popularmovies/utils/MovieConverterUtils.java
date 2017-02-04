@@ -50,7 +50,7 @@ public class MovieConverterUtils {
      * @param json string containing the results array
      * @return list of Movie
      */
-    public static List<Movie> convertFromJsonString(String json) {
+    public static List<Movie> convertFromJson(String json) {
         try {
             JSONObject movieJson = new JSONObject(json);
             return convertJsonArray(movieJson.getJSONArray(JSON_ARRAY));
