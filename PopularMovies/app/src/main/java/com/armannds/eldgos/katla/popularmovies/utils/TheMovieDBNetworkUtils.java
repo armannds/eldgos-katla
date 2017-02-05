@@ -20,6 +20,7 @@ import android.net.Uri;
 import android.util.Log;
 
 import com.armannds.eldgos.katla.popularmovies.BuildConfig;
+import com.armannds.eldgos.katla.popularmovies.data.Movie;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -37,6 +38,8 @@ public class TheMovieDBNetworkUtils {
     private static final String POPULAR_PATH = "popular";
     private static final String TOP_RATED_PATH = "top_rated";
     private static final String API_KEY_PARAM = "api_key";
+    private static final String IMAGE_BASE_URL = "https://image.tmdb.org/t/p/";
+    private static final String IMAGE_SIZE = "w185";
 
     private TheMovieDBNetworkUtils() {}
 
@@ -73,5 +76,9 @@ public class TheMovieDBNetworkUtils {
             Log.e(TAG, "Could not create URL for " + sortByPath + " movies!");
         }
         return theMovieDbUrl;
+    }
+
+    public static String buildMoviePosterUrl(Movie movie) {
+        return IMAGE_BASE_URL + IMAGE_SIZE + movie.getPosterPath();
     }
 }

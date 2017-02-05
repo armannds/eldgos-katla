@@ -19,6 +19,8 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -36,14 +38,22 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    private TextView mTestText;
+    private static final int COLUMN_COUNT = 2;
+    private RecyclerView mRecyclerView;
+    private MoviesAdapter mAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mTestText = (TextView) findViewById(R.id.tv_test);
+        mRecyclerView = (RecyclerView) findViewById(R.id.rv_movies);
+        mRecyclerView.setLayoutManager(new GridLayoutManager(this, COLUMN_COUNT));
+        mRecyclerView.setHasFixedSize(true);
+
+        mAdapter = new MoviesAdapter(this);
+        mRecyclerView.setAdapter(mAdapter);
+
         loadMovies(R.string.popular);
     }
 
@@ -107,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(List<Movie> movies) {
             if (MovieCollectionUtils.isNotEmpty(movies)) {
-                mTestText.setText(movies.get(0).getTitle());
+                mAdapter.setMovies(movies);
             }
         }
     }
