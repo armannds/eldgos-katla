@@ -41,6 +41,7 @@ public class MovieConverterUtils {
     private static final String RELEASE_DATE = "release_date";
     private static final String VOTE_AVERAGE = "vote_average";
     private static final String PLOT_SYNOPSIS = "overview";
+    private static final String BACKDROP_PATH = "backdrop_path";
 
     private MovieConverterUtils() {}
 
@@ -84,7 +85,8 @@ public class MovieConverterUtils {
                 jsonMovie.getString(RELEASE_DATE),
                 jsonMovie.getString(POSTER_PATH),
                 jsonMovie.getString(VOTE_AVERAGE),
-                jsonMovie.getString(PLOT_SYNOPSIS));
+                jsonMovie.getString(PLOT_SYNOPSIS),
+                jsonMovie.getString(BACKDROP_PATH));
     }
 
     private static boolean isNotDefaultMovie(Movie movie) {

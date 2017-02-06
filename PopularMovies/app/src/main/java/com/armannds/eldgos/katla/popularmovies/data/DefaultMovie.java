@@ -29,12 +29,13 @@ public final class DefaultMovie extends Movie {
     private static final String MOVIE_POSTER_PATH = "";
     private static final String VOTE_AVERAGE = "";
     private static final String PLOT_SYNOPSIS = "";
+    private static final String BACKDROP_PATH = "";
 
     public DefaultMovie() {
-        this(ID, TITLE, RELEASE_DATE, MOVIE_POSTER_PATH, VOTE_AVERAGE, PLOT_SYNOPSIS);
+        this(ID, TITLE, RELEASE_DATE, MOVIE_POSTER_PATH, VOTE_AVERAGE, PLOT_SYNOPSIS, BACKDROP_PATH);
     }
 
-    private DefaultMovie(String id, String title, String releaseDate, String moviePosterPath, String voteAverage, String plotSynopsis) {
-        super(id, title, releaseDate, moviePosterPath, voteAverage, plotSynopsis);
+    private DefaultMovie(String id, String title, String releaseDate, String moviePosterPath, String voteAverage, String plotSynopsis, String backdropPath) {
+        super(id, title, releaseDate, moviePosterPath, voteAverage, plotSynopsis, backdropPath);
     }
 }

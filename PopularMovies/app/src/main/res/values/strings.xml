@@ -3,4 +3,5 @@
     <string name="popular">Popular</string>
     <string name="top_rated">Top Rated</string>
     <string name="error_message">Oops! Something went wrong while fetching data, please restart the application</string>
+    <string name="vote_average">%1$s/10</string>
 </resources>

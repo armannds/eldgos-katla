@@ -20,12 +20,15 @@ import android.os.Parcelable;
 
 public class Movie implements Parcelable {
 
+    public static final String EXTRA = "com.armannds.eldgos.katla.popularmovies.data.Movie";
+
     private String id;
     private String title;
     private String releaseDate;
     private String posterPath;
     private String voteAverage;
     private String plotSynopsis;
+    private String backdropPath;
 
     private Movie(Parcel in) {
         id = in.readString();
@@ -34,15 +37,17 @@ public class Movie implements Parcelable {
         posterPath = in.readString();
         voteAverage = in.readString();
         plotSynopsis = in.readString();
+        backdropPath = in.readString();
     }
 
-    public Movie(String id, String title, String releaseDate, String posterPath, String voteAverage, String plotSynopsis) {
+    public Movie(String id, String title, String releaseDate, String posterPath, String voteAverage, String plotSynopsis, String backdropPath) {
         this.id = id;
         this.title = title;
         this.releaseDate = releaseDate;
         this.posterPath = posterPath;
         this.voteAverage = voteAverage;
         this.plotSynopsis = plotSynopsis;
+        this.backdropPath = backdropPath;
     }
 
     @Override
@@ -58,6 +63,7 @@ public class Movie implements Parcelable {
         dest.writeString(posterPath);
         dest.writeString(voteAverage);
         dest.writeString(plotSynopsis);
+        dest.writeString(backdropPath);
     }
 
     public static final Creator<Movie> CREATOR = new Creator<Movie>() {
@@ -118,5 +124,13 @@ public class Movie implements Parcelable {
 
     public void setPlotSynopsis(String plotSynopsis) {
         this.plotSynopsis = plotSynopsis;
+    }
+
+    public String getBackdropPath() {
+        return backdropPath;
+    }
+
+    public void setBackdropPath(String backdropPath) {
+        this.backdropPath = backdropPath;
     }
 }

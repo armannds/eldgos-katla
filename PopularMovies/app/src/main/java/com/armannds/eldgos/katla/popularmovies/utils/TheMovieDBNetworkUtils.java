@@ -39,7 +39,8 @@ public class TheMovieDBNetworkUtils {
     private static final String TOP_RATED_PATH = "top_rated";
     private static final String API_KEY_PARAM = "api_key";
     private static final String IMAGE_BASE_URL = "https://image.tmdb.org/t/p/";
-    private static final String IMAGE_SIZE = "w185";
+    private static final String POSTER_SIZE = "w185";
+    private static final String BACKDROP_SIZE = "w342";
 
     private TheMovieDBNetworkUtils() {}
 
@@ -79,6 +80,10 @@ public class TheMovieDBNetworkUtils {
     }
 
     public static String buildMoviePosterUrl(Movie movie) {
-        return IMAGE_BASE_URL + IMAGE_SIZE + movie.getPosterPath();
+        return IMAGE_BASE_URL + POSTER_SIZE + movie.getPosterPath();
+    }
+
+    public static String buildMovieBackdropUrl(Movie movie) {
+        return IMAGE_BASE_URL + BACKDROP_SIZE + movie.getBackdropPath();
     }
 }

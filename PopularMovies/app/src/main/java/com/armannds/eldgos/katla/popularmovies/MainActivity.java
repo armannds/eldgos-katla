@@ -15,6 +15,8 @@
  */
 package com.armannds.eldgos.katla.popularmovies;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -36,7 +38,7 @@ import com.armannds.eldgos.katla.popularmovies.utils.UrlReader;
 import java.net.URL;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements MoviesAdapter.MoviesAdapterOnClickHandler {
 
     private static final int COLUMN_COUNT = 2;
     private RecyclerView mRecyclerView;
@@ -51,7 +53,9 @@ public class MainActivity extends AppCompatActivity {
         mRecyclerView.setLayoutManager(new GridLayoutManager(this, COLUMN_COUNT));
         mRecyclerView.setHasFixedSize(true);
 
-        mAdapter = new MoviesAdapter(this);
+        Context context = this;
+        MoviesAdapter.MoviesAdapterOnClickHandler clickHandler = this;
+        mAdapter = new MoviesAdapter(context, clickHandler);
         mRecyclerView.setAdapter(mAdapter);
 
         loadMovies(R.string.popular);
@@ -81,6 +85,15 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onClick(Movie movie) {
+        Context context = this;
+        Class destinationClass = DetailsActivity.class;
+        Intent intentToStartDetailsActivity = new Intent(context, destinationClass);
+        intentToStartDetailsActivity.putExtra(Movie.EXTRA, movie);
+        startActivity(intentToStartDetailsActivity);
     }
 
     class FetchMoviesTask extends AsyncTask<Integer, Void, List<Movie>> {
