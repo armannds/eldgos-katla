@@ -17,6 +17,8 @@ package com.armannds.eldgos.katla.popularmovies;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -26,28 +28,38 @@ import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.armannds.eldgos.katla.popularmovies.data.Movie;
-import com.armannds.eldgos.katla.popularmovies.utils.JsonStringUtils;
+import com.armannds.eldgos.katla.popularmovies.utils.TextUtils;
 import com.armannds.eldgos.katla.popularmovies.utils.MovieCollectionUtils;
 import com.armannds.eldgos.katla.popularmovies.utils.MovieConverterUtils;
 import com.armannds.eldgos.katla.popularmovies.utils.TheMovieDBNetworkUtils;
 import com.armannds.eldgos.katla.popularmovies.utils.UrlReader;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements MoviesAdapter.MoviesAdapterOnClickHandler {
 
     private static final int COLUMN_COUNT = 2;
+    private static final String MOVIES_KEY = "movies";
+    private static final String TITLE_KEY = "title";
     private RecyclerView mRecyclerView;
+    private TextView mErrorMessageDisplay;
+    private ProgressBar mLoadingIndicator;
     private MoviesAdapter mAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mErrorMessageDisplay = (TextView) findViewById(R.id.tv_error_message_display);
+        mLoadingIndicator = (ProgressBar) findViewById(R.id.pb_loading_indicator);
 
         mRecyclerView = (RecyclerView) findViewById(R.id.rv_movies);
         mRecyclerView.setLayoutManager(new GridLayoutManager(this, COLUMN_COUNT));
@@ -58,10 +70,44 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
         mAdapter = new MoviesAdapter(context, clickHandler);
         mRecyclerView.setAdapter(mAdapter);
 
-        loadMovies(R.string.popular);
+        if (isSavedInstanceStateValid(savedInstanceState)) {
+            ArrayList<Movie> movies = savedInstanceState.getParcelableArrayList(MOVIES_KEY);
+            mAdapter.setMovies(movies);
+            String title = savedInstanceState.getString(TITLE_KEY);
+            setTitle(title);
+        } else {
+            if (isOnline()) {
+                loadMovies(R.string.popular);
+            } else {
+                showErrorMessage();
+            }
+        }
+    }
+
+    private boolean isSavedInstanceStateValid(Bundle savedInstanceState) {
+        return savedInstanceState != null && savedInstanceState.containsKey(MOVIES_KEY)
+                && savedInstanceState.containsKey(TITLE_KEY);
+    }
+
+    private boolean isOnline() {
+        ConnectivityManager cm =
+                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        return netInfo != null && netInfo.isConnectedOrConnecting();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (MovieCollectionUtils.isNotEmpty(mAdapter.getmMovies())) {
+            ArrayList<Movie> movies = new ArrayList<>(mAdapter.getmMovies());
+            outState.putParcelableArrayList(MOVIES_KEY, movies);
+        }
+        outState.putString(TITLE_KEY, getTitle().toString());
     }
 
     private void loadMovies(int movieFilter) {
+        showMoviesGrid();
         new FetchMoviesTask().execute(movieFilter);
         setTitle(movieFilter);
     }
@@ -96,7 +142,24 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
         startActivity(intentToStartDetailsActivity);
     }
 
+    private void showErrorMessage() {
+        mRecyclerView.setVisibility(View.INVISIBLE);
+        mErrorMessageDisplay.setVisibility(View.VISIBLE);
+    }
+
+    private void showMoviesGrid() {
+        mRecyclerView.setVisibility(View.VISIBLE);
+        mErrorMessageDisplay.setVisibility(View.INVISIBLE);
+    }
+
+
     class FetchMoviesTask extends AsyncTask<Integer, Void, List<Movie>> {
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            mLoadingIndicator.setVisibility(View.VISIBLE);
+        }
 
         @Override
         protected List<Movie> doInBackground(Integer... params) {
@@ -112,7 +175,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
             //TODO wrap these commands into a service and create non static methods using dependency injection to increase testability.
             URL url = getMovieUrl(movieFilter);
             String jsonResults = UrlReader.readFromUrl(url);
-            if (JsonStringUtils.isNotEmpty(jsonResults)) {
+            if (TextUtils.isNotEmpty(jsonResults)) {
                 return MovieConverterUtils.convertFromJson(jsonResults);
             } else {
                 return null;
@@ -129,8 +192,12 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
 
         @Override
         protected void onPostExecute(List<Movie> movies) {
+            mLoadingIndicator.setVisibility(View.INVISIBLE);
             if (MovieCollectionUtils.isNotEmpty(movies)) {
+                showMoviesGrid();
                 mAdapter.setMovies(movies);
+            } else {
+                showErrorMessage();
             }
         }
     }

@@ -16,7 +16,7 @@
 
 package com.armannds.eldgos.katla.popularmovies.utils;
 
-public class JsonStringUtils {
+public class TextUtils {
 
     public static boolean isEmpty(String value) {
         return value == null || value.isEmpty();

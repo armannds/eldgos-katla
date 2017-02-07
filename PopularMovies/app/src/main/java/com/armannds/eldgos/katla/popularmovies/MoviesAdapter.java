@@ -72,6 +72,10 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesAdap
         notifyDataSetChanged();
     }
 
+    public List<Movie> getmMovies() {
+        return mMovies;
+    }
+
     class MoviesAdapterViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         ImageView mMoviePoster;
 
