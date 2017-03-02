@@ -25,6 +25,8 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
+import android.util.DisplayMetrics;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -33,7 +35,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.armannds.eldgos.katla.popularmovies.data.Movie;
-import com.armannds.eldgos.katla.popularmovies.utils.TextUtils;
 import com.armannds.eldgos.katla.popularmovies.utils.MovieCollectionUtils;
 import com.armannds.eldgos.katla.popularmovies.utils.MovieConverterUtils;
 import com.armannds.eldgos.katla.popularmovies.utils.TheMovieDBNetworkUtils;
@@ -43,37 +44,37 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import butterknife.BindString;
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 public class MainActivity extends AppCompatActivity implements MoviesAdapter.MoviesAdapterOnClickHandler {
 
-    private static final int COLUMN_COUNT = 2;
-    private static final String MOVIES_KEY = "movies";
-    private static final String TITLE_KEY = "title";
-    private RecyclerView mRecyclerView;
-    private TextView mErrorMessageDisplay;
-    private ProgressBar mLoadingIndicator;
+    @BindString(R.string.movie_key) String mMovieKey;
+    @BindString(R.string.title_key) String mTitleKey;
+    @BindView(R.id.rv_movies) RecyclerView mRecyclerView;
+    @BindView(R.id.tv_error_message_display) TextView mErrorMessageDisplay;
+    @BindView(R.id.pb_loading_indicator) ProgressBar mLoadingIndicator;
+
     private MoviesAdapter mAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        mErrorMessageDisplay = (TextView) findViewById(R.id.tv_error_message_display);
-        mLoadingIndicator = (ProgressBar) findViewById(R.id.pb_loading_indicator);
-
-        mRecyclerView = (RecyclerView) findViewById(R.id.rv_movies);
-        mRecyclerView.setLayoutManager(new GridLayoutManager(this, COLUMN_COUNT));
-        mRecyclerView.setHasFixedSize(true);
+        ButterKnife.bind(this);
 
         Context context = this;
         MoviesAdapter.MoviesAdapterOnClickHandler clickHandler = this;
         mAdapter = new MoviesAdapter(context, clickHandler);
         mRecyclerView.setAdapter(mAdapter);
+        mRecyclerView.setLayoutManager(new GridLayoutManager(this, calculateNoOfColumns()));
+        mRecyclerView.setHasFixedSize(true);
 
         if (isSavedInstanceStateValid(savedInstanceState)) {
-            ArrayList<Movie> movies = savedInstanceState.getParcelableArrayList(MOVIES_KEY);
+            ArrayList<Movie> movies = savedInstanceState.getParcelableArrayList(mMovieKey);
             mAdapter.setMovies(movies);
-            String title = savedInstanceState.getString(TITLE_KEY);
+            String title = savedInstanceState.getString(mTitleKey);
             setTitle(title);
         } else {
             if (isOnline()) {
@@ -84,9 +85,15 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
         }
     }
 
+    private int calculateNoOfColumns() {
+        DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
+        float dpWidth = displayMetrics.widthPixels / displayMetrics.density;
+        return (int) (dpWidth / 180);
+    }
+
     private boolean isSavedInstanceStateValid(Bundle savedInstanceState) {
-        return savedInstanceState != null && savedInstanceState.containsKey(MOVIES_KEY)
-                && savedInstanceState.containsKey(TITLE_KEY);
+        return savedInstanceState != null && savedInstanceState.containsKey(mMovieKey)
+                && savedInstanceState.containsKey(mTitleKey);
     }
 
     private boolean isOnline() {
@@ -101,9 +108,9 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
         super.onSaveInstanceState(outState);
         if (MovieCollectionUtils.isNotEmpty(mAdapter.getmMovies())) {
             ArrayList<Movie> movies = new ArrayList<>(mAdapter.getmMovies());
-            outState.putParcelableArrayList(MOVIES_KEY, movies);
+            outState.putParcelableArrayList(mMovieKey, movies);
         }
-        outState.putString(TITLE_KEY, getTitle().toString());
+        outState.putString(mTitleKey, getTitle().toString());
     }
 
     private void loadMovies(int movieFilter) {
@@ -175,7 +182,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
             //TODO wrap these commands into a service and create non static methods using dependency injection to increase testability.
             URL url = getMovieUrl(movieFilter);
             String jsonResults = UrlReader.readFromUrl(url);
-            if (TextUtils.isNotEmpty(jsonResults)) {
+            if (!TextUtils.isEmpty(jsonResults)) {
                 return MovieConverterUtils.convertFromJson(jsonResults);
             } else {
                 return null;

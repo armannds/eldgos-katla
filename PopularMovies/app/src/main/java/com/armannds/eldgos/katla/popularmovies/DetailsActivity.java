@@ -21,6 +21,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -33,53 +34,50 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 public class DetailsActivity extends AppCompatActivity {
 
     private static final String TAG = DetailsActivity.class.getSimpleName();
 
-    private ImageView mBackdropImage;
-    private TextView mPlotSynopsis;
-    private ImageView mPoster;
-    private TextView mReleaseDate;
-    private TextView mVoteAverage;
-    private TextView mTitle;
+    @BindView(R.id.iv_backdrop) ImageView mBackdropImage;
+    @BindView(R.id.tv_plot_synopsis) TextView mPlotSynopsis;
+    @BindView(R.id.iv_poster) ImageView mPoster;
+    @BindView(R.id.tv_release_date) TextView mReleaseDate;
+    @BindView(R.id.tv_voteAverage) TextView mVoteAverage;
+    @BindView(R.id.tv_title) TextView mTitle;
 
+    private Movie mMovie;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_details);
-
-        mBackdropImage = (ImageView) findViewById(R.id.iv_backdrop);
-        mPlotSynopsis = (TextView) findViewById(R.id.tv_plot_synopsis);
-        mPoster = (ImageView) findViewById(R.id.iv_poster);
-        mReleaseDate = (TextView) findViewById(R.id.tv_release_date);
-        mVoteAverage = (TextView) findViewById(R.id.tv_voteAverage);
-        mTitle = (TextView) findViewById(R.id.tv_title);
+        ButterKnife.bind(this);
 
         Intent intent = getIntent();
         if (intent != null) {
             if (intent.hasExtra(Movie.EXTRA)) {
-                Movie movieToDisplay = intent.getParcelableExtra(Movie.EXTRA);
-
-                loadImages(movieToDisplay);
-                setTitle(movieToDisplay.getTitle());
-                mTitle.setText(movieToDisplay.getTitle());
-                mPlotSynopsis.setText(movieToDisplay.getPlotSynopsis());
-                mReleaseDate.setText(formatDate(movieToDisplay.getReleaseDate()));
-                mVoteAverage.setText(getString(R.string.vote_average, movieToDisplay.getVoteAverage()));
+                mMovie = intent.getParcelableExtra(Movie.EXTRA);
+                loadImages();
+                setTitle(mMovie.getTitle());
+                mTitle.setText(mMovie.getTitle());
+                mPlotSynopsis.setText(mMovie.getPlotSynopsis());
+                mReleaseDate.setText(formatDate(mMovie.getReleaseDate()));
+                mVoteAverage.setText(getString(R.string.vote_average, mMovie.getVoteAverage()));
             }
         }
     }
 
-    private void loadImages(Movie movieToDisplay) {
+    private void loadImages() {
         Context context = this;
         Picasso.with(context)
-                .load(TheMovieDBNetworkUtils.buildMovieBackdropUrl(movieToDisplay))
+                .load(TheMovieDBNetworkUtils.buildMovieBackdropUrl(mMovie))
                 .into(mBackdropImage);
 
         Picasso.with(context)
-                .load(TheMovieDBNetworkUtils.buildMoviePosterUrl(movieToDisplay))
+                .load(TheMovieDBNetworkUtils.buildMoviePosterUrl(mMovie))
                 .into(mPoster);
     }
 
@@ -92,5 +90,16 @@ public class DetailsActivity extends AppCompatActivity {
             Log.v(TAG, "Could not parse date " + date);
             return date;
         }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int itemId = item.getItemId();
+        if (itemId == android.R.id.home) {
+            onBackPressed();
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 }
