@@ -21,12 +21,11 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.TextUtils;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -34,35 +33,47 @@ import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.armannds.eldgos.katla.popularmovies.api.TheMovieDbResponse;
+import com.armannds.eldgos.katla.popularmovies.api.TheMovieDbService;
 import com.armannds.eldgos.katla.popularmovies.data.Movie;
 import com.armannds.eldgos.katla.popularmovies.utils.MovieCollectionUtils;
-import com.armannds.eldgos.katla.popularmovies.utils.MovieConverterUtils;
-import com.armannds.eldgos.katla.popularmovies.utils.TheMovieDBNetworkUtils;
-import com.armannds.eldgos.katla.popularmovies.utils.UrlReader;
 
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.inject.Inject;
 
 import butterknife.BindString;
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity implements MoviesAdapter.MoviesAdapterOnClickHandler {
 
-    @BindString(R.string.movie_key) String mMovieKey;
-    @BindString(R.string.title_key) String mTitleKey;
-    @BindView(R.id.rv_movies) RecyclerView mRecyclerView;
-    @BindView(R.id.tv_error_message_display) TextView mErrorMessageDisplay;
-    @BindView(R.id.pb_loading_indicator) ProgressBar mLoadingIndicator;
+    private static final String TAG = MainActivity.class.getSimpleName();
+
+    @BindView(R.id.rv_movies)
+    RecyclerView mRecyclerView;
+    @BindView(R.id.tv_error_message_display)
+    TextView mErrorMessageDisplay;
+    @BindView(R.id.pb_loading_indicator)
+    ProgressBar mLoadingIndicator;
+    @BindString(R.string.movie_key)
+    String mMovieKey;
+    @BindString(R.string.title_key)
+    String mTitleKey;
 
     private MoviesAdapter mAdapter;
+    @Inject TheMovieDbService theMovieDbService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
+        ((PopularMoviesApplication) getApplication()).getNetworkComponent().inject(this);
 
         Context context = this;
         MoviesAdapter.MoviesAdapterOnClickHandler clickHandler = this;
@@ -162,6 +173,8 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
 
     class FetchMoviesTask extends AsyncTask<Integer, Void, List<Movie>> {
 
+        private List<Movie> mMovies;
+
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
@@ -177,24 +190,31 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
             return getMovies(movieFilter);
         }
 
-        @Nullable
         private List<Movie> getMovies(int movieFilter) {
-            //TODO wrap these commands into a service and create non static methods using dependency injection to increase testability.
-            URL url = getMovieUrl(movieFilter);
-            String jsonResults = UrlReader.readFromUrl(url);
-            if (!TextUtils.isEmpty(jsonResults)) {
-                return MovieConverterUtils.convertFromJson(jsonResults);
-            } else {
-                return null;
-            }
-        }
-
-        private URL getMovieUrl(int movieFilter) {
+            Call<TheMovieDbResponse> movieResults = null;
             if (movieFilter == R.string.top_rated) {
-                return TheMovieDBNetworkUtils.buildTopRatedMoviesUrl();
+                movieResults = theMovieDbService.getTopRatedMovies();
             } else {
-                return TheMovieDBNetworkUtils.buildPopularMoviesUrl();
+                movieResults = theMovieDbService.getPopularMovies();
             }
+
+            if (movieResults != null) {
+                movieResults.enqueue(new Callback<TheMovieDbResponse>() {
+                    @Override
+                    public void onResponse(Call<TheMovieDbResponse> call, Response<TheMovieDbResponse> response) {
+                        List<Movie> result = response.body().getResults();
+                        Log.d(TAG, "Success, fetched " + result.size() + " no. of mMovies!");
+                        mMovies = result;
+                    }
+
+                    @Override
+                    public void onFailure(Call<TheMovieDbResponse> call, Throwable t) {
+                        Log.e(TAG, "Failed to fetch movies due to: " + t.getMessage());
+                    }
+                });
+            }
+
+            return mMovies;
         }
 
         @Override

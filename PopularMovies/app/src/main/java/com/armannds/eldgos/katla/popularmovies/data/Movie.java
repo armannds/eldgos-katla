@@ -18,17 +18,26 @@ package com.armannds.eldgos.katla.popularmovies.data;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.gson.annotations.SerializedName;
+
 public class Movie implements Parcelable {
 
     public static final String EXTRA = "com.armannds.eldgos.katla.popularmovies.data.Movie";
 
-    private String id;
-    private String title;
-    private String releaseDate;
-    private String posterPath;
-    private String voteAverage;
-    private String plotSynopsis;
-    private String backdropPath;
+    @SerializedName("id")
+    String id;
+    @SerializedName("title")
+    String title;
+    @SerializedName("release_date")
+    String releaseDate;
+    @SerializedName("poster_path")
+    String posterPath;
+    @SerializedName("vote_average")
+    String voteAverage;
+    @SerializedName("overview")
+    String plotSynopsis;
+    @SerializedName("backdrop_path")
+    String backdropPath;
 
     private Movie(Parcel in) {
         id = in.readString();
