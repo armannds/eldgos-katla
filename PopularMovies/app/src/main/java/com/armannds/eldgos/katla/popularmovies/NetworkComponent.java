@@ -1,6 +1,8 @@
 package com.armannds.eldgos.katla.popularmovies;
 
 import com.armannds.eldgos.katla.popularmovies.api.NetworkModule;
+import com.armannds.eldgos.katla.popularmovies.ui.DetailsActivity;
+import com.armannds.eldgos.katla.popularmovies.ui.MainActivity;
 
 import javax.inject.Singleton;
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.armannds.eldgos.katla.popularmovies;
+package com.armannds.eldgos.katla.popularmovies.ui;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
@@ -23,6 +23,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import com.armannds.eldgos.katla.popularmovies.R;
 import com.armannds.eldgos.katla.popularmovies.data.Movie;
 import com.armannds.eldgos.katla.popularmovies.utils.TheMovieDBNetworkUtils;
 import com.squareup.picasso.Picasso;

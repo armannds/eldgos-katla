@@ -13,19 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.armannds.eldgos.katla.popularmovies;
+package com.armannds.eldgos.katla.popularmovies.ui;
 
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.AsyncTaskLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -33,11 +34,14 @@ import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.armannds.eldgos.katla.popularmovies.PopularMoviesApplication;
+import com.armannds.eldgos.katla.popularmovies.R;
 import com.armannds.eldgos.katla.popularmovies.api.TheMovieDbResponse;
 import com.armannds.eldgos.katla.popularmovies.api.TheMovieDbService;
 import com.armannds.eldgos.katla.popularmovies.data.Movie;
 import com.armannds.eldgos.katla.popularmovies.utils.MovieCollectionUtils;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,12 +51,13 @@ import butterknife.BindString;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
-public class MainActivity extends AppCompatActivity implements MoviesAdapter.MoviesAdapterOnClickHandler {
+public class MainActivity extends AppCompatActivity
+        implements MoviesAdapter.MoviesAdapterOnClickHandler,
+        LoaderManager.LoaderCallbacks<List<Movie>> {
 
     private static final String TAG = MainActivity.class.getSimpleName();
+    private static final int MOVIE_LOADER = 17;
 
     @BindView(R.id.rv_movies)
     RecyclerView mRecyclerView;
@@ -66,6 +71,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
     String mTitleKey;
 
     private MoviesAdapter mAdapter;
+    private int mMovieFilter;
     @Inject TheMovieDbService theMovieDbService;
 
     @Override
@@ -126,7 +132,14 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
 
     private void loadMovies(int movieFilter) {
         showMoviesGrid();
-        new FetchMoviesTask().execute(movieFilter);
+        mMovieFilter = movieFilter;
+        LoaderManager loaderManager = getSupportLoaderManager();
+        Loader<List<Movie>> movieLoader = loaderManager.getLoader(MOVIE_LOADER);
+        if (movieLoader == null) {
+            loaderManager.initLoader(MOVIE_LOADER, null, this);
+        } else {
+            loaderManager.restartLoader(MOVIE_LOADER, null, this);
+        }
         setTitle(movieFilter);
     }
 
@@ -170,62 +183,64 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
         mErrorMessageDisplay.setVisibility(View.INVISIBLE);
     }
 
+    @Override
+    public Loader<List<Movie>> onCreateLoader(int id, Bundle args) {
+        return new AsyncTaskLoader<List<Movie>>(this) {
 
-    class FetchMoviesTask extends AsyncTask<Integer, Void, List<Movie>> {
+            List<Movie> mMovies;
 
-        private List<Movie> mMovies;
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            mLoadingIndicator.setVisibility(View.VISIBLE);
-        }
-
-        @Override
-        protected List<Movie> doInBackground(Integer... params) {
-            if (params.length == 0) {
-                return null;
-            }
-            int movieFilter = params[0];
-            return getMovies(movieFilter);
-        }
-
-        private List<Movie> getMovies(int movieFilter) {
-            Call<TheMovieDbResponse> movieResults = null;
-            if (movieFilter == R.string.top_rated) {
-                movieResults = theMovieDbService.getTopRatedMovies();
-            } else {
-                movieResults = theMovieDbService.getPopularMovies();
+            @Override
+            public void onStartLoading() {
+                if (mMovies != null) {
+                    deliverResult(mMovies);
+                } else {
+                    mLoadingIndicator.setVisibility(View.VISIBLE);
+                    forceLoad();
+                }
             }
 
-            if (movieResults != null) {
-                movieResults.enqueue(new Callback<TheMovieDbResponse>() {
-                    @Override
-                    public void onResponse(Call<TheMovieDbResponse> call, Response<TheMovieDbResponse> response) {
-                        List<Movie> result = response.body().getResults();
-                        Log.d(TAG, "Success, fetched " + result.size() + " no. of mMovies!");
-                        mMovies = result;
+            @Override
+            public void deliverResult(List<Movie> data) {
+                mMovies = data;
+                super.deliverResult(data);
+            }
+
+            @Override
+            public List<Movie> loadInBackground() {
+                Call<TheMovieDbResponse> theMovieDbResponse = null;
+                if (mMovieFilter == R.string.top_rated) {
+                    theMovieDbResponse = theMovieDbService.getTopRatedMovies();
+                } else {
+                    theMovieDbResponse = theMovieDbService.getPopularMovies();
+                }
+
+                final Object[] movies = new Object[1];
+                if (theMovieDbResponse != null) {
+                    try {
+                        movies[0] = theMovieDbResponse.execute().body().getResults();
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
+                }
 
-                    @Override
-                    public void onFailure(Call<TheMovieDbResponse> call, Throwable t) {
-                        Log.e(TAG, "Failed to fetch movies due to: " + t.getMessage());
-                    }
-                });
+                return (List<Movie>) movies[0];
             }
+        };
+    }
 
-            return mMovies;
+    @Override
+    public void onLoadFinished(Loader<List<Movie>> loader, List<Movie> data) {
+        mLoadingIndicator.setVisibility(View.INVISIBLE);
+        if (data != null) {
+            showMoviesGrid();
+            mAdapter.setMovies(data);
+        } else {
+            showErrorMessage();
         }
+    }
 
-        @Override
-        protected void onPostExecute(List<Movie> movies) {
-            mLoadingIndicator.setVisibility(View.INVISIBLE);
-            if (MovieCollectionUtils.isNotEmpty(movies)) {
-                showMoviesGrid();
-                mAdapter.setMovies(movies);
-            } else {
-                showErrorMessage();
-            }
-        }
+    @Override
+    public void onLoaderReset(Loader<List<Movie>> loader) {
+
     }
 }
