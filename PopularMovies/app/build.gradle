@@ -50,9 +50,9 @@ dependencies {
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    compile 'com.android.support:appcompat-v7:25.1.1'
+    compile 'com.android.support:appcompat-v7:25.2.0'
     //Recyclerview
-    compile 'com.android.support:recyclerview-v7:25.1.1'
+    compile 'com.android.support:recyclerview-v7:25.2.0'
 
     //Gson - used as Json converter for Retrofit
     compile 'com.google.code.gson:gson:2.7'
@@ -73,6 +73,10 @@ dependencies {
     annotationProcessor "com.google.dagger:dagger-compiler:2.9"
     apt 'com.google.dagger:dagger-compiler:2.9'
     provided 'javax.annotation:jsr250-api:1.0'
+
+    //Parceler
+    compile 'org.parceler:parceler-api:1.1.6'
+    apt 'org.parceler:parceler:1.1.6'
 
     //Test
     testCompile 'junit:junit:4.12'

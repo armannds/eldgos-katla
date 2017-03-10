@@ -16,17 +16,15 @@
 
 package com.armannds.eldgos.katla.popularmovies.utils;
 
-import com.armannds.eldgos.katla.popularmovies.data.Movie;
-
 import java.util.Collection;
 
-public class MovieCollectionUtils {
+public class CollectionUtils {
 
-    public static boolean isEmpty(Collection<Movie> collection) {
+    public static <T> boolean isEmpty(Collection<T> collection) {
         return collection == null || collection.isEmpty();
     }
 
-    public static boolean isNotEmpty(Collection<Movie> collection) {
+    public static <T> boolean isNotEmpty(Collection<T> collection) {
         return !isEmpty(collection);
     }
 }

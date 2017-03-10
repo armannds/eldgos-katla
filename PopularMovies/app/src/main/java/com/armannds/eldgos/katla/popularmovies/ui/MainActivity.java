@@ -27,6 +27,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -39,7 +40,10 @@ import com.armannds.eldgos.katla.popularmovies.R;
 import com.armannds.eldgos.katla.popularmovies.api.TheMovieDbResponse;
 import com.armannds.eldgos.katla.popularmovies.api.TheMovieDbService;
 import com.armannds.eldgos.katla.popularmovies.data.Movie;
-import com.armannds.eldgos.katla.popularmovies.utils.MovieCollectionUtils;
+import com.armannds.eldgos.katla.popularmovies.ui.detail.MovieDetailsActivity;
+import com.armannds.eldgos.katla.popularmovies.utils.CollectionUtils;
+
+import org.parceler.Parcels;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -59,18 +63,18 @@ public class MainActivity extends AppCompatActivity
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int MOVIE_LOADER = 17;
 
+    @BindString(R.string.movies_key)
+    String mMoviesKey;
+    @BindString(R.string.title_key)
+    String mTitleKey;
     @BindView(R.id.rv_movies)
     RecyclerView mRecyclerView;
     @BindView(R.id.tv_error_message_display)
     TextView mErrorMessageDisplay;
     @BindView(R.id.pb_loading_indicator)
     ProgressBar mLoadingIndicator;
-    @BindString(R.string.movie_key)
-    String mMovieKey;
-    @BindString(R.string.title_key)
-    String mTitleKey;
 
-    private MoviesAdapter mAdapter;
+    private MoviesAdapter mMoviesAdapter;
     private int mMovieFilter;
     @Inject TheMovieDbService theMovieDbService;
 
@@ -83,14 +87,14 @@ public class MainActivity extends AppCompatActivity
 
         Context context = this;
         MoviesAdapter.MoviesAdapterOnClickHandler clickHandler = this;
-        mAdapter = new MoviesAdapter(context, clickHandler);
-        mRecyclerView.setAdapter(mAdapter);
+        mMoviesAdapter = new MoviesAdapter(context, clickHandler);
+        mRecyclerView.setAdapter(mMoviesAdapter);
         mRecyclerView.setLayoutManager(new GridLayoutManager(this, calculateNoOfColumns()));
         mRecyclerView.setHasFixedSize(true);
 
         if (isSavedInstanceStateValid(savedInstanceState)) {
-            ArrayList<Movie> movies = savedInstanceState.getParcelableArrayList(mMovieKey);
-            mAdapter.setMovies(movies);
+            List<Movie> movies = Parcels.unwrap(savedInstanceState.getParcelable(mMoviesKey));
+            mMoviesAdapter.setMovies(movies);
             String title = savedInstanceState.getString(mTitleKey);
             setTitle(title);
         } else {
@@ -109,7 +113,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private boolean isSavedInstanceStateValid(Bundle savedInstanceState) {
-        return savedInstanceState != null && savedInstanceState.containsKey(mMovieKey)
+        return savedInstanceState != null && savedInstanceState.containsKey(mMoviesKey)
                 && savedInstanceState.containsKey(mTitleKey);
     }
 
@@ -123,9 +127,9 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        if (MovieCollectionUtils.isNotEmpty(mAdapter.getmMovies())) {
-            ArrayList<Movie> movies = new ArrayList<>(mAdapter.getmMovies());
-            outState.putParcelableArrayList(mMovieKey, movies);
+        if (CollectionUtils.isNotEmpty(mMoviesAdapter.getMovies())) {
+            ArrayList<Movie> movies = new ArrayList<>(mMoviesAdapter.getMovies());
+            outState.putParcelable(mMoviesKey, Parcels.wrap(movies));
         }
         outState.putString(mTitleKey, getTitle().toString());
     }
@@ -167,9 +171,9 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onClick(Movie movie) {
         Context context = this;
-        Class destinationClass = DetailsActivity.class;
+        Class destinationClass = MovieDetailsActivity.class;
         Intent intentToStartDetailsActivity = new Intent(context, destinationClass);
-        intentToStartDetailsActivity.putExtra(Movie.EXTRA, movie);
+        intentToStartDetailsActivity.putExtra(Movie.EXTRA, Parcels.wrap(movie));
         startActivity(intentToStartDetailsActivity);
     }
 
@@ -207,23 +211,23 @@ public class MainActivity extends AppCompatActivity
 
             @Override
             public List<Movie> loadInBackground() {
-                Call<TheMovieDbResponse> theMovieDbResponse = null;
+                Call<TheMovieDbResponse> theMovieDbResponse;
                 if (mMovieFilter == R.string.top_rated) {
                     theMovieDbResponse = theMovieDbService.getTopRatedMovies();
                 } else {
                     theMovieDbResponse = theMovieDbService.getPopularMovies();
                 }
 
-                final Object[] movies = new Object[1];
+                List<Movie> movies = null;
                 if (theMovieDbResponse != null) {
                     try {
-                        movies[0] = theMovieDbResponse.execute().body().getResults();
+                        movies = theMovieDbResponse.execute().body().getResults();
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        Log.e(TAG, "Error retrieving movies!");
                     }
                 }
 
-                return (List<Movie>) movies[0];
+                return movies;
             }
         };
     }
@@ -233,7 +237,7 @@ public class MainActivity extends AppCompatActivity
         mLoadingIndicator.setVisibility(View.INVISIBLE);
         if (data != null) {
             showMoviesGrid();
-            mAdapter.setMovies(data);
+            mMoviesAdapter.setMovies(data);
         } else {
             showErrorMessage();
         }

@@ -15,17 +15,17 @@
  */
 package com.armannds.eldgos.katla.popularmovies.data;
 
-import android.os.Parcel;
-import android.os.Parcelable;
-
 import com.google.gson.annotations.SerializedName;
 
-public class Movie implements Parcelable {
+import org.parceler.Parcel;
+
+@Parcel
+public class Movie {
 
     public static final String EXTRA = "com.armannds.eldgos.katla.popularmovies.data.Movie";
 
     @SerializedName("id")
-    String id;
+    long id;
     @SerializedName("title")
     String title;
     @SerializedName("release_date")
@@ -39,59 +39,14 @@ public class Movie implements Parcelable {
     @SerializedName("backdrop_path")
     String backdropPath;
 
-    private Movie(Parcel in) {
-        id = in.readString();
-        title = in.readString();
-        releaseDate = in.readString();
-        posterPath = in.readString();
-        voteAverage = in.readString();
-        plotSynopsis = in.readString();
-        backdropPath = in.readString();
+    public Movie() {
     }
 
-    public Movie(String id, String title, String releaseDate, String posterPath, String voteAverage, String plotSynopsis, String backdropPath) {
-        this.id = id;
-        this.title = title;
-        this.releaseDate = releaseDate;
-        this.posterPath = posterPath;
-        this.voteAverage = voteAverage;
-        this.plotSynopsis = plotSynopsis;
-        this.backdropPath = backdropPath;
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(id);
-        dest.writeString(title);
-        dest.writeString(releaseDate);
-        dest.writeString(posterPath);
-        dest.writeString(voteAverage);
-        dest.writeString(plotSynopsis);
-        dest.writeString(backdropPath);
-    }
-
-    public static final Creator<Movie> CREATOR = new Creator<Movie>() {
-        @Override
-        public Movie createFromParcel(Parcel in) {
-            return new Movie(in);
-        }
-
-        @Override
-        public Movie[] newArray(int size) {
-            return new Movie[size];
-        }
-    };
-
-    public String getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(long id) {
         this.id = id;
     }
 
