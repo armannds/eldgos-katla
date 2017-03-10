@@ -17,6 +17,7 @@
 package com.armannds.eldgos.katla.popularmovies.ui;
 
 import android.content.Context;
+import android.graphics.drawable.ColorDrawable;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -29,6 +30,9 @@ import com.armannds.eldgos.katla.popularmovies.utils.TheMovieDBNetworkUtils;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
 
 public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesAdapterViewHolder> {
 
@@ -47,9 +51,7 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesAdap
 
     @Override
     public MoviesAdapterViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        Context context = parent.getContext();
-        LayoutInflater inflater = LayoutInflater.from(context);
-
+        LayoutInflater inflater = LayoutInflater.from(mContext);
         int listItemLayoutId = R.layout.movie_grid_item;
         boolean shouldAttachToParentImmediately = false;
         View view = inflater.inflate(listItemLayoutId, parent, shouldAttachToParentImmediately);
@@ -60,7 +62,10 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesAdap
     public void onBindViewHolder(MoviesAdapterViewHolder holder, int position) {
         Movie currentMovie = mMovies.get(position);
         String moviePosterUrl = TheMovieDBNetworkUtils.buildMoviePosterUrl(currentMovie);
-        Picasso.with(mContext).load(moviePosterUrl).into(holder.mMoviePoster);
+        Picasso
+                .with(mContext)
+                .load(moviePosterUrl)
+                .into(holder.mMoviePoster);
     }
 
     @Override
@@ -73,16 +78,17 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesAdap
         notifyDataSetChanged();
     }
 
-    public List<Movie> getmMovies() {
+    public List<Movie> getMovies() {
         return mMovies;
     }
 
     class MoviesAdapterViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+        @BindView(R.id.iv_grid_poster)
         ImageView mMoviePoster;
 
         public MoviesAdapterViewHolder(View itemView) {
             super(itemView);
-            mMoviePoster = (ImageView) itemView.findViewById(R.id.iv_poster);
+            ButterKnife.bind(this, itemView);
             itemView.setOnClickListener(this);
         }
 

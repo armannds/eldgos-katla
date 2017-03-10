@@ -29,21 +29,23 @@
             android:id="@+id/iv_backdrop"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:adjustViewBounds="true"/>
+            android:padding="0dp"
+            android:adjustViewBounds="true"
+            android:contentDescription="@string/backdrop_image_content_description"/>
 
         <TextView
             android:id="@+id/tv_plot_synopsis"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="@dimen/activity_vertical_margin"
-            android:textSize="14sp"/>
+            android:padding="@dimen/activity_vertical_and_horizontal_margin"
+            android:textAppearance="@style/TextAppearance.AppCompat.Small"/>
 
         <View
             android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="#cecece"
-            android:layout_marginLeft="8dp"
-            android:layout_marginRight="8dp"/>
+            android:layout_height="@dimen/horizontal_ruler_height"
+            android:background="@color/color_horizontal_ruler"
+            android:layout_marginLeft="@dimen/horizontal_ruler_margin"
+            android:layout_marginRight="@dimen/horizontal_ruler_margin"/>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -55,18 +57,19 @@
 
             <ImageView
                 android:id="@+id/iv_poster"
-                android:layout_width="185dp"
-                android:layout_height="185dp"
+                android:layout_width="@dimen/poster_image_width"
+                android:layout_height="@dimen/poster_image_height"
                 android:layout_marginLeft="0dp"
                 android:layout_marginRight="0dp"
-                android:cropToPadding="true"/>
+                android:cropToPadding="true"
+                android:contentDescription="@string/poster_image_content_description"/>
 
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginStart="0dp"
-                android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                android:layout_marginEnd="@dimen/activity_vertical_margin"
                 android:layout_marginLeft="0dp"
                 android:layout_marginRight="@dimen/activity_horizontal_margin"
                 android:orientation="vertical">
@@ -75,23 +78,45 @@
                     android:id="@+id/tv_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="22sp"/>
+                    android:textAppearance="@style/Base.TextAppearance.AppCompat.Large"
+                    android:textColor="?android:attr/textColorSecondary"/>
 
                 <TextView
                     android:id="@+id/tv_release_date"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="18sp"
+                    android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium"
                     android:textStyle="italic"/>
 
                 <TextView
                     android:id="@+id/tv_voteAverage"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="14sp"
+                    android:textAppearance="@style/Base.TextAppearance.AppCompat.Small"
                     android:textStyle="bold"/>
-
             </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/trailer_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/activity_vertical_and_horizontal_margin"
+            android:orientation="vertical"
+            android:visibility="invisible">
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/horizontal_ruler_height"
+                android:background="@color/color_horizontal_ruler"
+                android:layout_marginLeft="@dimen/horizontal_ruler_margin"
+                android:layout_marginRight="@dimen/horizontal_ruler_margin"/>
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/rv_movie_trailers"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
         </LinearLayout>
     </LinearLayout>
 </ScrollView>

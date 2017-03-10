@@ -5,9 +5,15 @@
     <string name="error_message">Oops! Something went wrong while fetching data! Please make sure that your device has internet access.</string>
     <string name="vote_average" formatted="true">%1$s/10</string>
 
+    <string name="backdrop_image_content_description">Backdrop image</string>
+    <string name="poster_image_content_description">Poster image</string>
+    <string name="trailer_icon_content_description">Trailer icon</string>
+
 
     <!-- Non-translatable strings and keys -->
-    <string name="movie_key" translatable="false">movies</string>
+    <string name="movies_key" translatable="false">movies</string>
     <string name="title_key" translatable="false">title</string>
+    <string name="movie_key" translatable="false">movie</string>
+    <string name="trailers_key" translatable="false">trailers</string>
 
 </resources>
